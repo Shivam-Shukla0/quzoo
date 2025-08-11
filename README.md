@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Quiz Management System with AI Generator
 
 A comprehensive Flask-based quiz management system featuring an AI-powered quiz generator using Google's Gemini API.
@@ -216,3 +217,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - ✅ Improved question validation and parsing
 - ✅ Added comprehensive testing utilities
 - ✅ Enhanced user interface with better UX
+=======
+# Quzo
+>>>>>>> 67e2da8e0e53aba5cfee515775a7d7f8059afec0
