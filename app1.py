@@ -335,8 +335,12 @@ def ai_quiz_generator():
                 topic = request.form.get('topic')
                 num_questions = int(request.form.get('num_questions', 5))
                 
+                print(f"DEBUG: Attempting to generate {num_questions} questions on topic: {topic}")
+                
                 # Use the new API management system
                 questions_list = generate_quiz_questions(topic, num_questions)
+                
+                print(f"DEBUG: Generated {len(questions_list)} questions successfully")
                 
                 if not questions_list:
                     flash('No valid questions were generated. Please try again with a different topic.', 'warning')
@@ -352,8 +356,9 @@ def ai_quiz_generator():
                 return render_template('ai_quiz_generator.html', questions=questions_list, topic=topic)
 
             except Exception as e:
-                flash(f'An error occurred while generating questions: {str(e)}', 'danger')
-                print(f"AI Generation Error: {e}")
+                error_msg = str(e)
+                print(f"DEBUG: AI Generation Error: {error_msg}")
+                flash(f'An error occurred while generating questions: {error_msg}', 'danger')
                 traceback.print_exc()
                 return redirect(url_for('ai_quiz_generator'))
 

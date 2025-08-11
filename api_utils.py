@@ -6,11 +6,32 @@ import random
 
 class APIKeyManager:
     def __init__(self, keys_file='api_keys.json'):
-        self.keys_file = keys_file
+        # Get the directory where this script is located
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        # Make the path relative to the script directory
+        self.keys_file = os.path.join(script_dir, keys_file)
         self.load_keys()
     
     def load_keys(self):
-        """Load API keys from the JSON file"""
+        """Load API keys from the JSON file or environment variables"""
+        # Try to load from environment variable first (for production)
+        env_api_key = os.environ.get('GEMINI_API_KEY')
+        
+        if env_api_key and env_api_key.strip():
+            # If environment variable is set, use it
+            self.data = {
+                "keys": [env_api_key.strip()],
+                "key_status": {
+                    env_api_key.strip(): {
+                        "is_active": True,
+                        "usage_count": 0,
+                        "last_used": None
+                    }
+                }
+            }
+            return
+        
+        # Fallback to JSON file (for development)
         if os.path.exists(self.keys_file):
             with open(self.keys_file, 'r') as f:
                 self.data = json.load(f)
@@ -19,9 +40,18 @@ class APIKeyManager:
             self.data = {"keys": [], "key_status": {}}
     
     def save_keys(self):
-        """Save API keys to the JSON file"""
-        with open(self.keys_file, 'w') as f:
-            json.dump(self.data, f, indent=2)
+        """Save API keys to the JSON file (only in development mode)"""
+        # Don't save if using environment variable (production mode)
+        if os.environ.get('GEMINI_API_KEY'):
+            return
+        
+        # Only save if we have the JSON file available (development mode)
+        try:
+            with open(self.keys_file, 'w') as f:
+                json.dump(self.data, f, indent=2)
+        except (IOError, OSError):
+            # If we can't write to file (e.g., in production), just skip
+            pass
     
     def get_active_key(self):
         """Get an active API key with lowest usage count"""
