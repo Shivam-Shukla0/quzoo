@@ -536,19 +536,6 @@ def logout():
     flash('You have been logged out.', 'info')
     return redirect(url_for('login'))
 
-# Temporary debug route for Railway deployment
-@app.route('/debug/env')
-def debug_env():
-    """Debug route to check environment variables on Railway"""
-    import os
-    return jsonify({
-        "gemini_api_key_set": bool(os.environ.get('GEMINI_API_KEY')),
-        "gemini_api_key_length": len(os.environ.get('GEMINI_API_KEY', '')),
-        "flask_env": os.environ.get('FLASK_ENV', 'not_set'),
-        "debug": os.environ.get('DEBUG', 'not_set'),
-        "all_env_keys": list(os.environ.keys())
-    })
-
 # Temporary debug route for production troubleshooting
 @app.route('/debug_production')
 def debug_production():
