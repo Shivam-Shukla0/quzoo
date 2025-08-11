@@ -1,0 +1,24 @@
+{
+  "keys": [
+    "YOUR_GEMINI_API_KEY_1",
+    "YOUR_GEMINI_API_KEY_2",
+    "YOUR_GEMINI_API_KEY_3"
+  ],
+  "key_status": {
+    "YOUR_GEMINI_API_KEY_1": {
+      "is_active": true,
+      "last_used": "Never",
+      "usage_count": 0
+    },
+    "YOUR_GEMINI_API_KEY_2": {
+      "is_active": true,
+      "last_used": "Never",
+      "usage_count": 0
+    },
+    "YOUR_GEMINI_API_KEY_3": {
+      "is_active": true,
+      "last_used": "Never",
+      "usage_count": 0
+    }
+  }
+}
