@@ -483,6 +483,73 @@ def debug_env():
 
 @app.route('/debug/test-ai')
 def debug_test_ai():
+    """Test the complete AI generation pipeline"""
+    import os
+    
+    try:
+        # Step 1: Check environment
+        env_key = os.environ.get('GEMINI_API_KEY')
+        
+        result = {
+            "step1_env_check": {
+                "gemini_key_in_env": bool(env_key),
+                "gemini_key_length": len(env_key) if env_key else 0,
+                "gemini_key_preview": env_key[:15] + "..." if env_key else "NOT_SET"
+            }
+        }
+        
+        # Step 2: Test API Key Manager
+        try:
+            from api_utils import APIKeyManager
+            manager = APIKeyManager()
+            
+            result["step2_key_manager"] = {
+                "manager_created": True,
+                "keys_in_manager": len(manager.data.get('keys', [])),
+                "key_status_count": len(manager.data.get('key_status', {}))
+            }
+            
+            # Step 3: Test getting active key
+            try:
+                active_key = manager.get_active_key()
+                result["step3_active_key"] = {
+                    "active_key_found": bool(active_key),
+                    "active_key_preview": active_key[:15] + "..." if active_key else "NONE"
+                }
+                
+                # Step 4: Test actual AI generation (only if we have a key)
+                if active_key:
+                    from api_utils import generate_quiz_questions
+                    questions = generate_quiz_questions("Test Topic", 1)
+                    
+                    result["step4_ai_generation"] = {
+                        "generation_successful": True,
+                        "questions_generated": len(questions),
+                        "sample_question": questions[0] if questions else None
+                    }
+                else:
+                    result["step4_ai_generation"] = {
+                        "generation_successful": False,
+                        "error": "No active API key available"
+                    }
+                    
+            except Exception as e:
+                result["step3_active_key"] = {
+                    "error": str(e)
+                }
+                
+        except Exception as e:
+            result["step2_key_manager"] = {
+                "error": str(e)
+            }
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        return jsonify({
+            "error": str(e),
+            "step": "general_error"
+        })
     """Test AI generation with detailed error reporting"""
     import os
     try:

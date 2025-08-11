@@ -13,11 +13,12 @@ class APIKeyManager:
         self.load_keys()
     
     def load_keys(self):
-        """Load API keys from the JSON file or environment variables"""
-        # Try to load from environment variable first (for production)
+        """Load API keys from environment variables or JSON file"""
+        # PRIORITY 1: Try environment variable first (for production/Railway)
         env_api_key = os.environ.get('GEMINI_API_KEY')
         
-        if env_api_key and env_api_key.strip():
+        if env_api_key and env_api_key.strip() and len(env_api_key.strip()) > 20:
+            print(f"[API_UTILS] Using environment API key: {env_api_key[:10]}...")
             # If environment variable is set, use it
             self.data = {
                 "keys": [env_api_key.strip()],
@@ -31,13 +32,29 @@ class APIKeyManager:
             }
             return
         
-        # Fallback to JSON file (for development)
+        print("[API_UTILS] No valid environment API key found, trying JSON file...")
+        
+        # PRIORITY 2: Fallback to JSON file (for development)
         if os.path.exists(self.keys_file):
             with open(self.keys_file, 'r') as f:
                 self.data = json.load(f)
+                print(f"[API_UTILS] Loaded {len(self.data.get('keys', []))} keys from JSON file")
         else:
-            # Create default structure if file doesn't exist
-            self.data = {"keys": [], "key_status": {}}
+            print("[API_UTILS] No JSON file found, using hardcoded fallback")
+            # PRIORITY 3: Hardcoded fallback for Railway if env vars fail
+            fallback_keys = [
+                "AIzaSyB6MWQao9Nr4oOb6VuBb3-uHlH5Wj-Zkm0",
+                "AIzaSyBAs9_KtpK_GctBPJqkudhdkcivQ3hcvmI",
+                "AIzaSyB3VSl8I968eY2Aj9YylDG0U1GnGx2Qot4"
+            ]
+            
+            self.data = {"keys": fallback_keys, "key_status": {}}
+            for key in fallback_keys:
+                self.data["key_status"][key] = {
+                    "is_active": True,
+                    "usage_count": 0,
+                    "last_used": None
+                }
     
     def save_keys(self):
         """Save API keys to the JSON file (only in development mode)"""
@@ -110,13 +127,19 @@ class APIKeyManager:
 
 def generate_quiz_questions(topic, num_questions=5, max_retries=3):
     """Generate quiz questions using AI with API key rotation"""
-    print(f"DEBUG: Starting quiz generation for topic: {topic}, questions: {num_questions}")
+    print(f"[QUIZ_GEN] Starting generation for: {topic}, questions: {num_questions}")
     
     try:
         key_manager = APIKeyManager()
-        print(f"DEBUG: APIKeyManager initialized, keys available: {len(key_manager.data.get('keys', []))}")
+        available_keys = len(key_manager.data.get('keys', []))
+        print(f"[QUIZ_GEN] APIKeyManager initialized, keys available: {available_keys}")
+        
+        if available_keys == 0:
+            print("[QUIZ_GEN] ERROR: No API keys found!")
+            raise Exception("No API keys available. Please check environment variables or configuration.")
+            
     except Exception as e:
-        print(f"DEBUG: Error initializing APIKeyManager: {str(e)}")
+        print(f"[QUIZ_GEN] Error initializing APIKeyManager: {str(e)}")
         raise Exception(f"Failed to initialize API key manager: {str(e)}")
     
     prompt = f"""Create a JSON array of {num_questions} multiple-choice quiz questions on the topic of '{topic}'.
