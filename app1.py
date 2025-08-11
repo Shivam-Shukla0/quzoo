@@ -459,6 +459,9 @@ def debug_env():
     gemini_key_set = bool(os.environ.get('GEMINI_API_KEY'))
     gemini_key_length = len(os.environ.get('GEMINI_API_KEY', ''))
     
+    # Get all Railway-specific environment variables
+    railway_vars = {k: v for k, v in os.environ.items() if k.startswith('RAILWAY')}
+    
     # Check other environment variables
     debug_info = {
         "environment": os.environ.get('FLASK_ENV', 'development'),
@@ -469,9 +472,46 @@ def debug_env():
         "secret_key_set": bool(os.environ.get('SECRET_KEY')),
         "port": os.environ.get('PORT', 'not set'),
         "python_path": os.environ.get('PYTHONPATH', 'not set'),
+        "railway_environment": os.environ.get('RAILWAY_ENVIRONMENT', 'not set'),
+        "railway_service_name": os.environ.get('RAILWAY_SERVICE_NAME', 'not set'),
+        "total_env_vars": len(os.environ),
+        "has_railway_vars": len(railway_vars) > 0,
+        "working_directory": os.getcwd()
     }
     
     return jsonify(debug_info)
+
+@app.route('/debug/test-ai')
+def debug_test_ai():
+    """Test AI generation with detailed error reporting"""
+    import os
+    try:
+        # Check if API key is available
+        api_key = os.environ.get('GEMINI_API_KEY')
+        if not api_key:
+            return jsonify({
+                "status": "error",
+                "message": "No GEMINI_API_KEY environment variable found",
+                "all_env_keys": list(os.environ.keys())
+            })
+        
+        # Try to import and use the API
+        from api_utils import generate_quiz_questions
+        questions = generate_quiz_questions("Test", 1)
+        
+        return jsonify({
+            "status": "success",
+            "message": "AI generation working",
+            "questions_generated": len(questions),
+            "api_key_length": len(api_key)
+        })
+        
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": str(e),
+            "api_key_available": bool(os.environ.get('GEMINI_API_KEY'))
+        })
 
 @app.route('/debug/ai-test')
 def debug_ai_test():

@@ -1,0 +1,5 @@
+# Railway Deployment Trigger
+# This file forces Railway to redeploy when we push changes
+# Current timestamp: 2025-08-11 22:00:00
+
+RAILWAY_DEPLOYMENT_TRIGGER=True
