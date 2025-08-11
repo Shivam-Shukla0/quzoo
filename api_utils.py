@@ -110,7 +110,14 @@ class APIKeyManager:
 
 def generate_quiz_questions(topic, num_questions=5, max_retries=3):
     """Generate quiz questions using AI with API key rotation"""
-    key_manager = APIKeyManager()
+    print(f"DEBUG: Starting quiz generation for topic: {topic}, questions: {num_questions}")
+    
+    try:
+        key_manager = APIKeyManager()
+        print(f"DEBUG: APIKeyManager initialized, keys available: {len(key_manager.data.get('keys', []))}")
+    except Exception as e:
+        print(f"DEBUG: Error initializing APIKeyManager: {str(e)}")
+        raise Exception(f"Failed to initialize API key manager: {str(e)}")
     
     prompt = f"""Create a JSON array of {num_questions} multiple-choice quiz questions on the topic of '{topic}'.
     Each question object must have this exact format:
@@ -131,10 +138,12 @@ def generate_quiz_questions(topic, num_questions=5, max_retries=3):
     
     for attempt in range(max_retries):
         try:
+            print(f"DEBUG: Attempt {attempt + 1} to get API key")
             api_key = key_manager.get_active_key()
             if not api_key:
                 raise Exception("No active API keys available")
             
+            print(f"DEBUG: Got API key, configuring Gemini...")
             # Configure the API with the current key
             genai.configure(api_key=api_key)
             model = genai.GenerativeModel('gemini-1.5-flash')
